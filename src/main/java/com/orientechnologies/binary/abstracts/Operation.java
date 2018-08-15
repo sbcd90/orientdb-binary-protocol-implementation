@@ -1,0 +1,170 @@
+package com.orientechnologies.binary.abstracts;
+
+import com.orientechnologies.binary.protocol.binary.OrientSocket;
+import com.orientechnologies.binary.protocol.binary.SocketTransport;
+import com.orientechnologies.binary.protocol.binary.operations.Connect;
+import com.orientechnologies.binary.protocol.common.ConfigurableTrait;
+import org.apache.commons.lang3.ArrayUtils;
+
+import java.nio.ByteBuffer;
+import java.util.Map;
+
+public abstract class Operation extends ConfigurableTrait {
+
+    protected int opCode;
+
+    private OrientSocket socket;
+
+    private byte[] writeStack;
+
+    private byte[] inputBuffer;
+
+    private String outputBuffer;
+
+    protected SocketTransport transport;
+
+    public Operation(SocketTransport transport) throws Exception {
+        this.transport = transport;
+        this.socket = transport.getSocket();
+        this.writeStack = new byte[]{};
+    }
+
+    protected abstract int _read() throws Exception;
+
+    protected abstract void _write() throws Exception;
+
+    protected void _checkConditions(SocketTransport transport) {}
+
+    public Operation prepare() throws Exception {
+        this._checkConditions(transport);
+        this._writeHeader();
+        this._write();
+        return this;
+    }
+
+    public Operation send() throws Exception {
+        this.socket.write(this.writeStack);
+        return this;
+    }
+
+    public int getResponse() throws Exception {
+        this._readHeader();
+        int result = this._read();
+        return result;
+    }
+
+    protected void _writeHeader() {
+        this._writeByte((byte) this.opCode);
+        this._writeInt(this.transport.getSessionId());
+        String token = this.transport.getToken();
+
+        if (!(this instanceof Connect) && this.transport.isRequestToken()) {
+            this._writeString(token);
+        }
+    }
+
+    protected void _readHeader() throws Exception {
+        byte status = this._readByte();
+        int sessionId = this._readInt();
+
+        if (status == 1) {
+            this._readByte();
+            this._readError();
+        }
+    }
+
+    protected void _readError() throws Exception {
+        String type = this._readString();
+        String message = this._readString();
+        byte hasMore = this._readByte();
+
+        if (hasMore == 1) {
+            this._readError();
+        } else {
+            byte[] javaStackTrace = this._readBytes();
+        }
+        throw new RuntimeException(type + " : " + message);
+    }
+
+    protected void _writeInt(Integer value) {
+        ByteBuffer buffer = ByteBuffer.allocate(4);
+        buffer.putInt(value);
+        this.writeStack = ArrayUtils.addAll(this.writeStack, buffer.array());
+    }
+
+    protected void _writeByte(byte value) {
+        this.writeStack = ArrayUtils.add(this.writeStack, value);
+    }
+
+    protected byte _readByte() throws Exception {
+        byte[] read_ = this.socket.read(1);
+        inputBuffer = ArrayUtils.addAll(inputBuffer, read_);
+        ByteBuffer wrapped = ByteBuffer.wrap(read_);
+        return wrapped.get();
+    }
+
+    protected short _readShort() throws Exception {
+        byte[] read_ = this.socket.read(2);
+        inputBuffer = ArrayUtils.addAll(inputBuffer, read_);
+        ByteBuffer wrapped = ByteBuffer.wrap(read_);
+        return wrapped.getShort();
+    }
+
+    protected byte[] _readBytes() throws Exception {
+        int length = this._readInt();
+        if (length == -1) {
+            return null;
+        } else {
+            if (length == 0) {
+                return new byte[]{};
+            } else {
+                byte[] read_ = this.socket.read(length);
+                inputBuffer = ArrayUtils.addAll(inputBuffer, read_);
+                return read_;
+            }
+        }
+    }
+
+    protected String _readSerialized() throws Exception {
+        return this._readString();
+    }
+
+    protected void _writeString(String value) {
+        this.writeStack = ArrayUtils.addAll(this.writeStack, value.getBytes());
+    }
+
+    protected void _writeShort(Short value) {
+        ByteBuffer buffer = ByteBuffer.allocate(2);
+        buffer.putShort(value);
+        this.writeStack = ArrayUtils.addAll(this.writeStack, buffer.array());
+    }
+
+    protected void _writeBoolean(Boolean value) {
+        ByteBuffer buffer = ByteBuffer.allocate(1);
+        buffer.put(value ? (byte) 1: (byte) 0);
+        this.writeStack = ArrayUtils.addAll(this.writeStack, buffer.array());
+    }
+
+    protected Integer _readInt() throws Exception {
+        byte[] read_ = this.socket.read(4);
+        inputBuffer = ArrayUtils.addAll(inputBuffer, read_);
+        ByteBuffer wrapped = ByteBuffer.wrap(read_);
+        return wrapped.getInt();
+    }
+
+    protected String _readString() throws Exception {
+        int length = this._readInt();
+
+        if (length == -1) {
+            return null;
+        } else {
+            if (length == 0) {
+                return "";
+            } else {
+                byte[] read_ = this.socket.read(length);
+                inputBuffer = ArrayUtils.addAll(inputBuffer, read_);
+                return new String(read_);
+            }
+        }
+    }
+}
