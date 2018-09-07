@@ -29,7 +29,11 @@ public abstract class Operation extends ConfigurableTrait {
         this.writeStack = new byte[]{};
     }
 
-    protected abstract int _read() throws Exception;
+    public OrientSocket getSocket() {
+        return socket;
+    }
+
+    protected abstract <T> T _read() throws Exception;
 
     protected abstract void _write() throws Exception;
 
@@ -47,14 +51,13 @@ public abstract class Operation extends ConfigurableTrait {
         return this;
     }
 
-    public int getResponse() throws Exception {
+    public <T> T getResponse() throws Exception {
         this._readHeader();
-        int result = this._read();
+        T result = this._read();
         return result;
     }
 
     protected void _writeHeader() {
-        this._writeByte((byte) this.opCode);
         this._writeInt(this.transport.getSessionId());
         String token = this.transport.getToken();
 
@@ -130,6 +133,7 @@ public abstract class Operation extends ConfigurableTrait {
     }
 
     protected void _writeString(String value) {
+        this._writeInt(value.length());
         this.writeStack = ArrayUtils.addAll(this.writeStack, value.getBytes());
     }
 

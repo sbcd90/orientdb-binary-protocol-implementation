@@ -1,7 +1,9 @@
 package com.orientechnologies.binary.protocol.binary.operations;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.orientechnologies.binary.abstracts.Operation;
 import com.orientechnologies.binary.protocol.binary.SocketTransport;
+import com.orientechnologies.binary.protocol.binary.operations.utils.DBListResp;
 import com.orientechnologies.binary.protocol.common.Constants;
 
 public class DBList extends Operation {
@@ -10,11 +12,15 @@ public class DBList extends Operation {
 
     private String password;
 
-    public DBList(SocketTransport transport) throws Exception {
+    private ObjectMapper objectMapper;
+
+    public DBList(SocketTransport transport, String username, String password) throws Exception {
         super(transport);
-        this.username = "root";
-        this.password = "root";
+        this.username = username;
+        this.password = password;
+        this.objectMapper = new ObjectMapper();
         opCode = Constants.REQUEST_DB_LIST;
+        this._writeByte((byte) this.opCode);
     }
 
 
@@ -24,8 +30,10 @@ public class DBList extends Operation {
     }
 
     @Override
-    protected int _read() throws Exception {
+    protected <T> T _read() throws Exception {
         String output = this._readSerialized();
-        return 0;
+        DBListResp dbList = this.objectMapper.readValue(("{\"" + output + "}").replace(":{", "\":{"),
+                DBListResp.class);
+        return (T) dbList.getDatabases();
     }
 }

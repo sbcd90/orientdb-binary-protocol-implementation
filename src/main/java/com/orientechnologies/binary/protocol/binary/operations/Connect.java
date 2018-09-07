@@ -18,11 +18,12 @@ public class Connect extends Operation {
 
     public String password;
 
-    public Connect(SocketTransport transport) throws Exception {
+    public Connect(SocketTransport transport, String username, String password) throws Exception {
         super(transport);
-        this.username = "root";
-        this.password = "root";
+        this.username = username;
+        this.password = password;
         opCode = com.orientechnologies.binary.protocol.common.Constants.REQUEST_CONNECT;
+        this._writeByte((byte) this.opCode);
     }
 
     @Override
@@ -53,8 +54,8 @@ public class Connect extends Operation {
     }
 
     @Override
-    protected int _read() throws Exception {
-        int sessionId = this._readInt();
+    protected <T> T _read() throws Exception {
+        Integer sessionId = this._readInt();
         this.transport.setSessionId(sessionId);
 
         if (this.transport.getProtocolVersion() > 26) {
@@ -67,6 +68,6 @@ public class Connect extends Operation {
 
         this.transport.setConnected(true);
 
-        return sessionId;
+        return (T) sessionId;
     }
 }

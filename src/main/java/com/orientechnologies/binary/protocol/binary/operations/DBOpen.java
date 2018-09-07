@@ -27,11 +27,12 @@ public class DBOpen extends Operation {
 
     private String password;
 
-    public DBOpen(SocketTransport transport) throws Exception {
+    public DBOpen(SocketTransport transport, String username, String password) throws Exception {
         super(transport);
-        this.username = "root";
-        this.password = "root";
+        this.username = username;
+        this.password = password;
         opCode = com.orientechnologies.binary.protocol.common.Constants.REQUEST_DB_OPEN;
+        this._writeByte((byte) this.opCode);
     }
 
     @Override
@@ -64,8 +65,8 @@ public class DBOpen extends Operation {
     }
 
     @Override
-    protected int _read() throws Exception {
-        int sessionId = this._readInt();
+    protected <T> T _read() throws Exception {
+        Integer sessionId = this._readInt();
         this.transport.setSessionId(sessionId);
 
         this.transport.setDatabaseOpened(true);
@@ -108,6 +109,6 @@ public class DBOpen extends Operation {
 
         this.transport.setClusterMap(clusterList);
 
-        return sessionId;
+        return (T) sessionId;
     }
 }

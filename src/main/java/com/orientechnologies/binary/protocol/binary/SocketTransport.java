@@ -1,9 +1,7 @@
 package com.orientechnologies.binary.protocol.binary;
 
 import com.orientechnologies.binary.abstracts.Operation;
-import com.orientechnologies.binary.protocol.binary.operations.Connect;
-import com.orientechnologies.binary.protocol.binary.operations.DBList;
-import com.orientechnologies.binary.protocol.binary.operations.DBOpen;
+import com.orientechnologies.binary.protocol.binary.operations.*;
 import com.orientechnologies.binary.protocol.common.AbstractTransport;
 import com.orientechnologies.binary.protocol.common.ConfigurableTrait;
 
@@ -16,7 +14,7 @@ public class SocketTransport extends AbstractTransport {
 
     private short protocolVersion;
 
-    private int sessionId;
+    private int sessionId = -1;
 
     private boolean databaseOpened = false;
 
@@ -95,12 +93,13 @@ public class SocketTransport extends AbstractTransport {
     }
 
     @Override
-    public void execute(List<Object> operations, Map<String, String> params) {
+    public <T> T execute(List<Object> operations, Map<String, String> params) {
         try {
-            this.execute(operations.get(0).toString(), params);
+            return this.execute(operations.get(0).toString(), params);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+        return null;
     }
 
     @Override
@@ -116,23 +115,29 @@ public class SocketTransport extends AbstractTransport {
         this.password = options.get("password");
     }
 
-    protected int execute(String operation, Map<String, String> params) throws Exception {
+    protected <T> T execute(String operation, Map<String, String> params) throws Exception {
 
         Operation opObj = null;
         if (operation.equals("connect")) {
-            opObj = new Connect(this);
+            opObj = new Connect(this, params.get("username"), params.get("password"));
         }
         if (operation.equals("dbOpen")) {
-            opObj = new DBOpen(this);
+            opObj = new DBOpen(this, params.get("username"), params.get("password"));
             ((DBOpen) opObj).database = params.get("database");
         }
         if (operation.equals("dbList")) {
-            opObj = new DBList(this);
+            opObj = new DBList(this, params.get("username"), params.get("password"));
+        }
+        if (operation.equals("dbClose")) {
+            opObj = new DBClose(this, params.get("username"), params.get("password"));
+        }
+        if (operation.equals("shutDown")) {
+            opObj = new ShutDown(this, params.get("username"), params.get("password"));
         }
 
         Operation op = this.operationFactory(opObj, params);
 
-        int result = op.prepare().send().getResponse();
+        T result = op.prepare().send().getResponse();
         return result;
     }
 

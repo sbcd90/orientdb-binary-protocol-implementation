@@ -2,7 +2,7 @@ package com.orientechnologies.binary.configuration;
 
 public class Constants {
 
-    public static final String VERSION = "v1.2.6";
+    public static final String VERSION = "v2.2.32";
 
     public static final String ID = "1";
 

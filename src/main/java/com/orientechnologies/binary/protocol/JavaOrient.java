@@ -75,7 +75,7 @@ public class JavaOrient {
         return transport;
     }
 
-    public void connect(String username, String password) {
+    public <T> T connect(String username, String password) {
         String serializationType = Constants.SERIALIZATION_DOCUMENT2CSV;
 
         Map<String, String> params = new HashMap<>();
@@ -83,10 +83,10 @@ public class JavaOrient {
         params.put("password", password);
         params.put("serializationType", serializationType);
 
-        this.getTransport().execute(Arrays.asList("connect"), params);
+        return this.getTransport().execute(Arrays.asList("connect"), params);
     }
 
-    public void dbOpen(String database, String username, String password) {
+    public <T> T dbOpen(String database, String username, String password) {
         Map<String, String> params = new HashMap<>();
         params.put("databaseType", Constants.DATABASE_TYPE_DOCUMENT);
         params.put("serializationType", Constants.SERIALIZATION_DOCUMENT2CSV);
@@ -98,15 +98,31 @@ public class JavaOrient {
         values.put("password", password);
         values.put("serializationType", Constants.SERIALIZATION_DOCUMENT2CSV);
 
-        this.transport.execute(Arrays.asList("dbOpen"), values);
+        return this.transport.execute(Arrays.asList("dbOpen"), values);
     }
 
-    public void dbList(String username, String password) {
+    public <T> T dbList(String username, String password) {
         Map<String, String> params = new HashMap<>();
         params.put("username", username);
         params.put("password", password);
 
-        this.transport.execute(Arrays.asList("dbList"), params);
+        return this.transport.execute(Arrays.asList("dbList"), params);
+    }
+
+    public <T> T dbClose(String username, String password) {
+        Map<String, String> params = new HashMap<>();
+        params.put("username", username);
+        params.put("password", password);
+
+        return this.transport.execute(Arrays.asList("dbClose"), params);
+    }
+
+    public <T> T shutDown(String username, String password) {
+        Map<String, String> params = new HashMap<>();
+        params.put("username", username);
+        params.put("password", password);
+
+        return this.transport.execute(Arrays.asList("shutDown"), params);
     }
 
     public static void main(String[] args) {
@@ -117,5 +133,7 @@ public class JavaOrient {
         javaOrient.connect("root", "root");
         javaOrient.dbList("root", "root");
         javaOrient.dbOpen("GratefulDeadConcerts", "root", "root");
+//        javaOrient.dbClose("root", "root");
+        javaOrient.shutDown("root", "root");
     }
 }

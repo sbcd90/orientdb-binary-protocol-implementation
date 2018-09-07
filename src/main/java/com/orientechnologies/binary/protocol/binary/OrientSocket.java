@@ -78,4 +78,11 @@ public class OrientSocket {
 
         out.write(bytes, 0, lenOut);
     }
+
+    public void destruct() throws Exception {
+        this.PROTOCOL_VERSION = -1;
+        this.connected = false;
+        this.socket.close();
+        this.socket = null;
+    }
 }

@@ -5,5 +5,5 @@ import java.util.Map;
 
 public interface ITransport extends IConfigurable {
 
-    public void execute(List<Object> operations, Map<String, String> params);
+    public <T> T execute(List<Object> operations, Map<String, String> params);
 }
