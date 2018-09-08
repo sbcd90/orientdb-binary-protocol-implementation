@@ -134,6 +134,9 @@ public class SocketTransport extends AbstractTransport {
         if (operation.equals("shutDown")) {
             opObj = new ShutDown(this, params.get("username"), params.get("password"));
         }
+        if (operation.equals("addCluster")) {
+            opObj = new DataClusterAdd(this, params.get("clusterName"));
+        }
 
         Operation op = this.operationFactory(opObj, params);
 

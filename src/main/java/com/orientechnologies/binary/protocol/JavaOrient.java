@@ -125,6 +125,13 @@ public class JavaOrient {
         return this.transport.execute(Arrays.asList("shutDown"), params);
     }
 
+    public <T> T addCluster(String clusterName) {
+        Map<String, String> params = new HashMap<>();
+        params.put("clusterName", clusterName);
+
+        return this.transport.execute(Arrays.asList("addCluster"), params);
+    }
+
     public static void main(String[] args) {
         JavaOrient javaOrient = new JavaOrient("127.0.0.1", "2424");
         javaOrient.username = "root";
