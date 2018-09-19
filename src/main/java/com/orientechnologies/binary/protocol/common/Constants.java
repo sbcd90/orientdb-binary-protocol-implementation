@@ -18,5 +18,7 @@ public class Constants {
 
     public static final int DATA_CLUSTER_ADD_OP = 10;
 
+    public static final int DATA_CLUSTER_COUNT_OP = 12;
+
     public static final String DATABASE_TYPE_DOCUMENT = "document";
 }

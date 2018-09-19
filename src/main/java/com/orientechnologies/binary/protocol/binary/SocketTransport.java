@@ -93,7 +93,7 @@ public class SocketTransport extends AbstractTransport {
     }
 
     @Override
-    public <T> T execute(List<Object> operations, Map<String, String> params) {
+    public <T> T execute(List<Object> operations, Map<String, Object> params) {
         try {
             return this.execute(operations.get(0).toString(), params);
         } catch (Exception ex) {
@@ -103,7 +103,7 @@ public class SocketTransport extends AbstractTransport {
     }
 
     @Override
-    public ConfigurableTrait configured(Map<String, String> options) {
+    public ConfigurableTrait configured(Map<String, Object> options) {
         return super.configured(options);
     }
 
@@ -115,27 +115,32 @@ public class SocketTransport extends AbstractTransport {
         this.password = options.get("password");
     }
 
-    protected <T> T execute(String operation, Map<String, String> params) throws Exception {
+    protected <T> T execute(String operation, Map<String, Object> params) throws Exception {
 
         Operation opObj = null;
         if (operation.equals("connect")) {
-            opObj = new Connect(this, params.get("username"), params.get("password"));
+            opObj = new Connect(this, params.get("username").toString(), params.get("password").toString());
         }
         if (operation.equals("dbOpen")) {
-            opObj = new DBOpen(this, params.get("username"), params.get("password"));
-            ((DBOpen) opObj).database = params.get("database");
+            opObj = new DBOpen(this, params.get("username").toString(), params.get("password").toString());
+            ((DBOpen) opObj).database = params.get("database").toString();
         }
         if (operation.equals("dbList")) {
-            opObj = new DBList(this, params.get("username"), params.get("password"));
+            opObj = new DBList(this, params.get("username").toString(), params.get("password").toString());
         }
         if (operation.equals("dbClose")) {
-            opObj = new DBClose(this, params.get("username"), params.get("password"));
+            opObj = new DBClose(this, params.get("username").toString(), params.get("password").toString());
         }
         if (operation.equals("shutDown")) {
-            opObj = new ShutDown(this, params.get("username"), params.get("password"));
+            opObj = new ShutDown(this, params.get("username").toString(), params.get("password").toString());
         }
         if (operation.equals("addCluster")) {
-            opObj = new DataClusterAdd(this, params.get("clusterName"));
+            opObj = new DataClusterAdd(this, params.get("clusterName").toString());
+        }
+        if (operation.equals("clusterCount")) {
+            String[] clusterNames = (String[]) params.get("clusterNames");
+
+            opObj = new DataClusterCount(this, clusterNames, (Boolean) params.get("tombstones"));
         }
 
         Operation op = this.operationFactory(opObj, params);
@@ -144,17 +149,17 @@ public class SocketTransport extends AbstractTransport {
         return result;
     }
 
-    protected Operation operationFactory(Operation operation, Map<String, String> params) {
+    protected Operation operationFactory(Operation operation, Map<String, Object> params) {
         if (params.get("username") == null || params.get("username").equals("")) {
             params.put("username", this.username);
         } else {
-            this.username = params.get("username");
+            this.username = params.get("username").toString();
         }
 
         if (params.get("password") == null || params.get("password").equals("")) {
             params.put("password", this.password);
         } else {
-            this.password = params.get("password");
+            this.password = params.get("password").toString();
         }
 
         operation.configured(params);

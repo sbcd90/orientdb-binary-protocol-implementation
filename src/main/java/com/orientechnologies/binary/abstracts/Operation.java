@@ -171,4 +171,11 @@ public abstract class Operation extends ConfigurableTrait {
             }
         }
     }
+
+    protected Long _readLong() throws Exception {
+        byte[] read_ = this.socket.read(8);
+        this.inputBuffer = ArrayUtils.addAll(this.inputBuffer, read_);
+        ByteBuffer wrapped = ByteBuffer.wrap(read_);
+        return wrapped.getLong();
+    }
 }

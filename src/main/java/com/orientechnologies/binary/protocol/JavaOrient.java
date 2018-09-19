@@ -78,7 +78,7 @@ public class JavaOrient {
     public <T> T connect(String username, String password) {
         String serializationType = Constants.SERIALIZATION_DOCUMENT2CSV;
 
-        Map<String, String> params = new HashMap<>();
+        Map<String, Object> params = new HashMap<>();
         params.put("username", username);
         params.put("password", password);
         params.put("serializationType", serializationType);
@@ -87,11 +87,11 @@ public class JavaOrient {
     }
 
     public <T> T dbOpen(String database, String username, String password) {
-        Map<String, String> params = new HashMap<>();
+        Map<String, Object> params = new HashMap<>();
         params.put("databaseType", Constants.DATABASE_TYPE_DOCUMENT);
         params.put("serializationType", Constants.SERIALIZATION_DOCUMENT2CSV);
 
-        Map<String, String> values = new HashMap<>();
+        Map<String, Object> values = new HashMap<>();
         values.put("database", database);
         values.put("type", params.get("databaseType"));
         values.put("username", username);
@@ -102,7 +102,7 @@ public class JavaOrient {
     }
 
     public <T> T dbList(String username, String password) {
-        Map<String, String> params = new HashMap<>();
+        Map<String, Object> params = new HashMap<>();
         params.put("username", username);
         params.put("password", password);
 
@@ -110,7 +110,7 @@ public class JavaOrient {
     }
 
     public <T> T dbClose(String username, String password) {
-        Map<String, String> params = new HashMap<>();
+        Map<String, Object> params = new HashMap<>();
         params.put("username", username);
         params.put("password", password);
 
@@ -118,7 +118,7 @@ public class JavaOrient {
     }
 
     public <T> T shutDown(String username, String password) {
-        Map<String, String> params = new HashMap<>();
+        Map<String, Object> params = new HashMap<>();
         params.put("username", username);
         params.put("password", password);
 
@@ -126,10 +126,18 @@ public class JavaOrient {
     }
 
     public <T> T addCluster(String clusterName) {
-        Map<String, String> params = new HashMap<>();
+        Map<String, Object> params = new HashMap<>();
         params.put("clusterName", clusterName);
 
         return this.transport.execute(Arrays.asList("addCluster"), params);
+    }
+
+    public <T> T getClusterCount(String[] clusterNames, boolean tombstones) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("clusterNames", clusterNames);
+        params.put("tombstones", tombstones);
+
+        return this.transport.execute(Arrays.asList("clusterCount"), params);
     }
 
     public static void main(String[] args) {
@@ -140,7 +148,9 @@ public class JavaOrient {
         javaOrient.connect("root", "root");
         javaOrient.dbList("root", "root");
         javaOrient.dbOpen("GratefulDeadConcerts", "root", "root");
-//        javaOrient.dbClose("root", "root");
+        javaOrient.addCluster("testcluster9");
+        System.out.println(javaOrient.<Long>getClusterCount(new String[]{"testcluster9"}, true));
+        javaOrient.dbClose("root", "root");
         javaOrient.shutDown("root", "root");
     }
 }
