@@ -57,12 +57,12 @@ public class RecordLoad extends Operation {
 
         if (status != 0) {
             Map<String, Object> payload = new HashMap<>();
-            char type;
+            byte type;
             int version;
             Record recordData = null;
 
             if (this.transport.getProtocolVersion() > 27) {
-                type = this._readChar();
+                type = this._readByte();
                 version = this._readInt();
                 if (type == 'b') {
                     String data = this._readString();
@@ -73,7 +73,7 @@ public class RecordLoad extends Operation {
                 String temp = this._readString();
                 recordData = CSV.deserialize(temp);
                 version = this._readInt();
-                type = this._readChar();
+                type = this._readByte();
                 if (type == 'b') {
                     String finalData = temp;
                 }

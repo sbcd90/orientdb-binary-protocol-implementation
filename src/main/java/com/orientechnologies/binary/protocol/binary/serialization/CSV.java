@@ -4,9 +4,12 @@ import com.orientechnologies.binary.abstracts.SerializableInterface;
 import com.orientechnologies.binary.protocol.binary.data.Record;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -20,28 +23,14 @@ public class CSV {
         input = input.trim();
 
         Record record = new Record();
+        Map<String, Object> props = new HashMap<>();
 
-        byte[] chunk = eatFirstKey(input);
-        boolean val = ByteBuffer.wrap(new byte[]{chunk[2]}).getInt() == 1;
-        byte key;
-        if (val) {
-            record.setoClass(new String(new byte[]{chunk[0]}));
-            input = new String(new byte[]{chunk[1]});
-            chunk = eatKey(input);
-            key = chunk[0];
-            input = new String(new byte[]{chunk[1]});
-        } else {
-            key = chunk[0];
-            input = new String(new byte[]{chunk[1]});
-        }
+        byte[] key = eatFirstKey(input).getLeft();
+        input = input.substring(eatFirstKey(input).getRight());
 
-        if (input.length() == 0) {
-            return record;
-        }
-
-        chunk = eatValue(input);
-        byte value = chunk[0];
-        input = new String(new byte[]{chunk[1]});
+        byte[] chunk = eatValue(input).getKey();
+        input = input.substring(eatValue(input).getRight());
+        props.put(new String(key), new String(chunk));
 
 //        record.setoData(new byte[]{value});
 
@@ -52,18 +41,18 @@ public class CSV {
                 break;
             }
 
-            chunk = eatKey(input);
-            key = chunk[0];
-            input = new String(new byte[]{chunk[1]});
+            key = eatKey(input).getKey();
+            input = input.substring(eatKey(input).getRight());
             if (input.length() > 0) {
-                chunk = eatValue(input);
-                value = chunk[0];
-                input = new String(new byte[]{chunk[1]});
+                chunk = eatValue(input).getKey();
+                input = input.substring(eatValue(input).getRight());
+                props.put(new String(key), new String(chunk));
 //                record.setoData(new byte[]{value});
             } else {
                 record.setoData(null);
             }
         }
+        record.setoData(props);
         return record;
     }
 
@@ -88,9 +77,7 @@ public class CSV {
         byte[] assembled = new byte[]{};
         int count = 0;
         for (Map.Entry<String, Object> elem: elemData.entrySet()) {
-            ByteBuffer wrap = ByteBuffer.allocate(elem.getKey().getBytes().length);
-            wrap.put(elem.getKey().getBytes());
-            byte[] temp = ArrayUtils.addAll(wrap.array(), ":".getBytes());
+            byte[] temp = ArrayUtils.addAll(elem.getKey().getBytes(), ":".getBytes());
             byte[] segment = ArrayUtils.addAll(temp, serialize(elem.getValue()));
             segments[count] = segment;
 
@@ -109,15 +96,15 @@ public class CSV {
         return assembled;
     }
 
-    protected static byte[] eatFirstKey(String input) {
+    protected static Triple<byte[], Boolean, Integer> eatFirstKey(String input) {
         int length = input.length();
         String collected = "";
         boolean isClassName = false;
 
         byte[] result = new byte[]{};
         if (input.charAt(0) == '"') {
-            result = eatString(input.substring(1));
-            return ArrayUtils.addAll(new byte[]{result[0]}, result[1]);
+            result = eatString(input.substring(1)).getKey();
+            return Triple.of(new byte[]{result[0]}, false, -1);
         }
 
         int i = 0;
@@ -133,20 +120,17 @@ public class CSV {
             }
         }
 
-        ByteBuffer wrap = ByteBuffer.allocate(1);
-        wrap.put(isClassName ? (byte) 1: (byte) 0);
-        byte[] intermediate = ArrayUtils.addAll(collected.getBytes(), input.substring(i+1).getBytes());
-        return ArrayUtils.addAll(intermediate, wrap.array());
+        return Triple.of(collected.getBytes(), isClassName, i + 1);
     }
 
-    protected static byte[] eatKey(String input) {
+    protected static Pair<byte[], Integer> eatKey(String input) {
         int length = input.length();
         String collected = "";
 
         byte[] result = new byte[]{};
         if (input.length() >= 1 && input.charAt(0) == '"') {
-            result = eatString(input.substring(1));
-            return ArrayUtils.addAll(new byte[]{result[0]}, result[1]);
+            result = eatString(input.substring(1)).getKey();
+            return Pair.of(result, eatString(input.substring(1)).getRight());
         }
 
         int i = 0;
@@ -158,22 +142,22 @@ public class CSV {
                 collected += c;
             }
         }
-        return ArrayUtils.addAll(collected.getBytes(), input.substring(i+1).getBytes());
+        return Pair.of(collected.getBytes(), i+1);
     }
 
-    protected static byte[] eatValue(String input) {
+    protected static Pair<byte[], Integer> eatValue(String input) {
         input = StringUtils.stripStart(input, " ");
         char c = input.charAt(0);
         if (c == ',') {
-            return ArrayUtils.addAll(new byte[]{0}, input.getBytes());
+            return Pair.of(new byte[]{0}, 0);
         } else if (c == '"') {
             return eatString(input.substring(1));
         } else {
-            return ArrayUtils.addAll(new byte[]{0}, input.getBytes());
+            return Pair.of(new byte[]{0}, 0);
         }
     }
 
-    protected static byte[] eatString(String input) {
+    protected static Pair<byte[], Integer> eatString(String input) {
         int length = input.length();
         String collected = "";
         int i = 0;
@@ -189,6 +173,6 @@ public class CSV {
                 collected = collected + c;
             }
         }
-        return ArrayUtils.addAll(collected.getBytes(), input.substring(i + 1).getBytes());
+        return Pair.of(collected.getBytes(), i + 1);
     }
 }

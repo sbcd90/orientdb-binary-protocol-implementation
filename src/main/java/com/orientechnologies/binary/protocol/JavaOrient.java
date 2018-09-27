@@ -166,15 +166,19 @@ public class JavaOrient {
         javaOrient.connect("root", "root");
         javaOrient.dbList("root", "root");
         javaOrient.dbOpen("GratefulDeadConcerts", "root", "root");
-        short clusterId = javaOrient.addCluster("testcluster20");
-        System.out.println(javaOrient.<Long>getClusterCount(new String[]{"testcluster20"}, true));
+        short clusterId = javaOrient.addCluster("testcluster33");
+        System.out.println(javaOrient.<Long>getClusterCount(new String[]{"testcluster33"}, true));
 
         Record record = new Record();
         record.setVersion(1);
         record.setRid(new RecordId(clusterId, -1));
         record.setoData(Collections.singletonMap("hello", "world"));
         record.setoClass("testclass");
-        javaOrient.createRecord(record);
+        Record createdRecord = javaOrient.createRecord(record);
+
+        Record readRecord = javaOrient.readRecord((short) createdRecord.getRid().getCluster(),
+                createdRecord.getRid().getPosition(), null);
+        System.out.println(readRecord.getoData().get("hello"));
 
         javaOrient.dbClose("root", "root");
         javaOrient.shutDown("root", "root");
