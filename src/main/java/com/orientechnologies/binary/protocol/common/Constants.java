@@ -20,5 +20,11 @@ public class Constants {
 
     public static final int DATA_CLUSTER_COUNT_OP = 12;
 
+    public static final int RECORD_CREATE_OP = 31;
+
+    public static final int RECORD_LOAD_OP = 30;
+
     public static final String DATABASE_TYPE_DOCUMENT = "document";
+
+    public static final String RECORD_TYPE_DOCUMENT = "d";
 }

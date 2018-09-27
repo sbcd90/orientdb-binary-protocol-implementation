@@ -1,6 +1,7 @@
 package com.orientechnologies.binary.protocol.binary;
 
 import com.orientechnologies.binary.abstracts.Operation;
+import com.orientechnologies.binary.protocol.binary.data.Record;
 import com.orientechnologies.binary.protocol.binary.operations.*;
 import com.orientechnologies.binary.protocol.common.AbstractTransport;
 import com.orientechnologies.binary.protocol.common.ConfigurableTrait;
@@ -141,6 +142,15 @@ public class SocketTransport extends AbstractTransport {
             String[] clusterNames = (String[]) params.get("clusterNames");
 
             opObj = new DataClusterCount(this, clusterNames, (Boolean) params.get("tombstones"));
+        }
+        if (operation.equals("recordCreate")) {
+            Record record = (Record) params.get("record");
+
+            opObj = new RecordCreate(this, record);
+        }
+        if (operation.equals("recordLoad")) {
+            Map<String, Object> queryOptions = params;
+            opObj = new RecordLoad(this, queryOptions);
         }
 
         Operation op = this.operationFactory(opObj, params);

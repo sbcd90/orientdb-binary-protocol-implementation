@@ -113,6 +113,13 @@ public abstract class Operation extends ConfigurableTrait {
         return wrapped.getShort();
     }
 
+    protected char _readChar() throws Exception {
+        byte[] read_ = this.socket.read(2);
+        inputBuffer = ArrayUtils.addAll(inputBuffer, read_);
+        ByteBuffer wrapped = ByteBuffer.wrap(read_);
+        return wrapped.getChar();
+    }
+
     protected byte[] _readBytes() throws Exception {
         int length = this._readInt();
         if (length == -1) {
@@ -143,9 +150,33 @@ public abstract class Operation extends ConfigurableTrait {
         this.writeStack = ArrayUtils.addAll(this.writeStack, buffer.array());
     }
 
+    protected void _writeLong(Long value) {
+        ByteBuffer buffer = ByteBuffer.allocate(8);
+        buffer.putLong(value);
+        this.writeStack = ArrayUtils.addAll(this.writeStack, buffer.array());
+    }
+
     protected void _writeBoolean(Boolean value) {
         ByteBuffer buffer = ByteBuffer.allocate(1);
         buffer.put(value ? (byte) 1: (byte) 0);
+        this.writeStack = ArrayUtils.addAll(this.writeStack, buffer.array());
+    }
+
+    protected void _writeBytes(byte[] value) {
+        if (value == null) {
+            ByteBuffer buffer = ByteBuffer.allocate(4);
+            buffer.putInt(-1);
+            this.writeStack = ArrayUtils.addAll(this.writeStack, buffer.array());
+        } else {
+            ByteBuffer buffer = ByteBuffer.allocate(4);
+            buffer.putInt(value.length);
+            this.writeStack = ArrayUtils.addAll(this.writeStack, ArrayUtils.addAll(buffer.array(), value));
+        }
+    }
+
+    protected void _writeChar(char value) {
+        ByteBuffer buffer = ByteBuffer.allocate(2);
+        buffer.putChar(value);
         this.writeStack = ArrayUtils.addAll(this.writeStack, buffer.array());
     }
 

@@ -1,10 +1,13 @@
 package com.orientechnologies.binary.protocol;
 
 import com.orientechnologies.binary.protocol.binary.SocketTransport;
+import com.orientechnologies.binary.protocol.binary.data.Record;
+import com.orientechnologies.binary.protocol.binary.data.RecordId;
 import com.orientechnologies.binary.protocol.common.Constants;
 import com.orientechnologies.binary.protocol.common.ITransport;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -140,6 +143,21 @@ public class JavaOrient {
         return this.transport.execute(Arrays.asList("clusterCount"), params);
     }
 
+    public <T> T createRecord(Record record) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("record", record);
+
+        return this.transport.execute(Arrays.asList("recordCreate"), params);
+    }
+
+    public <T> T readRecord(short clusterId, long clusterPosition, RecordId recordId) {
+        Map<String, Object> queryOptions = new HashMap<>();
+        queryOptions.put("clusterId", clusterId);
+        queryOptions.put("clusterPosition", clusterPosition);
+        queryOptions.put("rid", recordId);
+        return this.transport.execute(Arrays.asList("recordLoad"), queryOptions);
+    }
+
     public static void main(String[] args) {
         JavaOrient javaOrient = new JavaOrient("127.0.0.1", "2424");
         javaOrient.username = "root";
@@ -148,8 +166,16 @@ public class JavaOrient {
         javaOrient.connect("root", "root");
         javaOrient.dbList("root", "root");
         javaOrient.dbOpen("GratefulDeadConcerts", "root", "root");
-        javaOrient.addCluster("testcluster9");
-        System.out.println(javaOrient.<Long>getClusterCount(new String[]{"testcluster9"}, true));
+        short clusterId = javaOrient.addCluster("testcluster20");
+        System.out.println(javaOrient.<Long>getClusterCount(new String[]{"testcluster20"}, true));
+
+        Record record = new Record();
+        record.setVersion(1);
+        record.setRid(new RecordId(clusterId, -1));
+        record.setoData(Collections.singletonMap("hello", "world"));
+        record.setoClass("testclass");
+        javaOrient.createRecord(record);
+
         javaOrient.dbClose("root", "root");
         javaOrient.shutDown("root", "root");
     }
