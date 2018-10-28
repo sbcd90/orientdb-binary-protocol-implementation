@@ -158,6 +158,14 @@ public class JavaOrient {
         return this.transport.execute(Arrays.asList("recordLoad"), queryOptions);
     }
 
+    public <T> T updateRecord(Record record, RecordId rid) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("record", record);
+        params.put("recordid", rid);
+
+        return this.transport.execute(Arrays.asList("recordUpdate"), params);
+    }
+
     public static void main(String[] args) {
         JavaOrient javaOrient = new JavaOrient("127.0.0.1", "2424");
         javaOrient.username = "root";
@@ -166,19 +174,26 @@ public class JavaOrient {
         javaOrient.connect("root", "root");
         javaOrient.dbList("root", "root");
         javaOrient.dbOpen("GratefulDeadConcerts", "root", "root");
-        short clusterId = javaOrient.addCluster("testcluster33");
-        System.out.println(javaOrient.<Long>getClusterCount(new String[]{"testcluster33"}, true));
+        short clusterId = javaOrient.addCluster("testcluster36");
+        System.out.println(javaOrient.<Long>getClusterCount(new String[]{"testcluster36"}, true));
 
         Record record = new Record();
         record.setVersion(1);
         record.setRid(new RecordId(clusterId, -1));
-        record.setoData(Collections.singletonMap("hello", "world"));
-        record.setoClass("testclass");
+        record.setoData(Collections.singletonMap("hello1", "world"));
+        record.setoClass("testclass1");
         Record createdRecord = javaOrient.createRecord(record);
 
         Record readRecord = javaOrient.readRecord((short) createdRecord.getRid().getCluster(),
                 createdRecord.getRid().getPosition(), null);
-        System.out.println(readRecord.getoData().get("hello"));
+        System.out.println(readRecord.getoData().get("hello1"));
+
+        record.setoData(Collections.singletonMap("hello1", "world1"));
+        Record updatedRecord = javaOrient.updateRecord(record, new RecordId(clusterId, -1));
+
+        readRecord = javaOrient.readRecord((short) updatedRecord.getRid().getCluster(),
+                updatedRecord.getRid().getPosition(), null);
+        System.out.println(readRecord.getoData().get("hello1"));
 
         javaOrient.dbClose("root", "root");
         javaOrient.shutDown("root", "root");

@@ -2,6 +2,7 @@ package com.orientechnologies.binary.protocol.binary;
 
 import com.orientechnologies.binary.abstracts.Operation;
 import com.orientechnologies.binary.protocol.binary.data.Record;
+import com.orientechnologies.binary.protocol.binary.data.RecordId;
 import com.orientechnologies.binary.protocol.binary.operations.*;
 import com.orientechnologies.binary.protocol.common.AbstractTransport;
 import com.orientechnologies.binary.protocol.common.ConfigurableTrait;
@@ -151,6 +152,12 @@ public class SocketTransport extends AbstractTransport {
         if (operation.equals("recordLoad")) {
             Map<String, Object> queryOptions = params;
             opObj = new RecordLoad(this, queryOptions);
+        }
+        if (operation.equals("recordUpdate")) {
+            Record record = (Record) params.get("record");
+            RecordId rid = (RecordId) params.get("recordid");
+
+            opObj = new RecordUpdate(this, record, rid);
         }
 
         Operation op = this.operationFactory(opObj, params);

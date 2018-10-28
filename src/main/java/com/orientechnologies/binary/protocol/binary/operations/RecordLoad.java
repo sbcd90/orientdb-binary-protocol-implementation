@@ -79,7 +79,7 @@ public class RecordLoad extends Operation {
                 }
             }
 
-            payload.put("rid", new RecordId(this.clusterId, this.clusterPosition));
+            payload.put("rid", new RecordId(this.clusterId, (int) this.clusterPosition));
             payload.put("type", type);
             payload.put("version", version);
             if (recordData != null && recordData.getoClass() != null) {

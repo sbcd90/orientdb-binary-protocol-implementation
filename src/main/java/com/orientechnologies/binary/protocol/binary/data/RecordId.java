@@ -8,14 +8,14 @@ public class RecordId implements Serializable {
 
     private short cluster = -1;
 
-    private long position = -1;
+    private int position = -1;
 
-    public RecordId(short cluster, long position) {
+    public RecordId(short cluster, int position) {
         this.cluster = cluster;
         this.position = position;
     }
 
-    public int getCluster() {
+    public short getCluster() {
         return cluster;
     }
 
@@ -23,11 +23,11 @@ public class RecordId implements Serializable {
         this.cluster = cluster;
     }
 
-    public long getPosition() {
+    public int getPosition() {
         return position;
     }
 
-    public void setPosition(long position) {
+    public void setPosition(int position) {
         this.position = position;
     }
 

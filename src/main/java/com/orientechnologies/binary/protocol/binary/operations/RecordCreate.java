@@ -66,7 +66,7 @@ public class RecordCreate extends Operation {
             }
 
             if (this.record != null) {
-                this.record.setRid(new RecordId(clusterId, position));
+                this.record.setRid(new RecordId(clusterId, (int) position));
                 this.record.setVersion(version);
             }
         }
