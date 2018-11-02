@@ -2,11 +2,18 @@ package com.orientechnologies.binary.abstracts;
 
 import com.orientechnologies.binary.protocol.binary.OrientSocket;
 import com.orientechnologies.binary.protocol.binary.SocketTransport;
+import com.orientechnologies.binary.protocol.binary.data.Record;
+import com.orientechnologies.binary.protocol.binary.data.RecordId;
 import com.orientechnologies.binary.protocol.binary.operations.Connect;
+import com.orientechnologies.binary.protocol.binary.serialization.CSV;
 import com.orientechnologies.binary.protocol.common.ConfigurableTrait;
 import org.apache.commons.lang3.ArrayUtils;
 
+import java.net.SocketException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public abstract class Operation extends ConfigurableTrait {
@@ -208,5 +215,57 @@ public abstract class Operation extends ConfigurableTrait {
         this.inputBuffer = ArrayUtils.addAll(this.inputBuffer, read_);
         ByteBuffer wrapped = ByteBuffer.wrap(read_);
         return wrapped.getLong();
+    }
+
+    protected List<Record> _readPrefetchRecord() throws Exception {
+        List<Record> resultSet = new ArrayList<>();
+        byte status = this._readByte();
+
+        while (status != 0) {
+            Record record = this._readRecord();
+
+            if (status == 1) {
+                resultSet.add(record);
+            }
+
+            status = this._readByte();
+        }
+        return resultSet;
+    }
+
+    protected Record _readRecord() throws Exception {
+        short classId = this._readShort();
+        Map<String, Object> oRecord = new HashMap<>();
+        oRecord.put("classId", classId);
+
+        if (classId == -1) {
+            throw new SocketException("No class for record, cannot proceed!");
+        } else if (classId == -2) {
+            oRecord.put("bytes", null);
+        } else if (classId == -3) {
+            oRecord.put("type", "d");
+            short cluster = this._readShort();
+            long position = this._readLong();
+            oRecord.put("rid", new RecordId(cluster, (int) position));
+        } else {
+            oRecord.put("type", this._readChar());
+            short cluster = this._readShort();
+            long position = this._readLong();
+            oRecord.put("version", this._readInt());
+
+            Record data = CSV.deserialize(this._readString());
+            oRecord.put("rid", new RecordId(cluster, (int) position));
+            if (data.getoClass() != null) {
+                oRecord.put("oClass", data.getoClass());
+                data.setoClass(null);
+            }
+            oRecord.put("oData", data);
+        }
+        Record finalRecord = new Record();
+        finalRecord.setoClass(oRecord.get("oClass").toString());
+        finalRecord.setoData((Map<String, Object>) oRecord.get("oData"));
+        finalRecord.setVersion(Integer.valueOf(oRecord.get("version").toString()));
+        finalRecord.setRid((RecordId) oRecord.get("rid"));
+        return finalRecord;
     }
 }

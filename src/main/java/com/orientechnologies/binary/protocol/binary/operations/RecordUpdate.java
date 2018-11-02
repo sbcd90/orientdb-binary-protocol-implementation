@@ -28,6 +28,8 @@ public class RecordUpdate extends Operation {
 
     private int recordVersion = -1;
 
+    private int recordVersionPolicy = -1;
+
     private boolean updateContent = true;
 
     public RecordUpdate(SocketTransport transport, Record record, RecordId rid) throws Exception {
@@ -47,6 +49,7 @@ public class RecordUpdate extends Operation {
 
         this.record.setRid(new RecordId(this.clusterId, this.clusterPosition));
 
+//        this._writeInt(this.transport.getSessionId());
         this._writeShort(this.clusterId);
         this._writeLong((long) this.clusterPosition);
 
@@ -56,7 +59,7 @@ public class RecordUpdate extends Operation {
 
         this._writeBytes(CSV.serialize(this.record));
         this._writeInt(this.recordVersion);
-        this._writeChar(this.recordType);
+        this._writeByte((byte) this.recordType);
         this._writeBoolean(this.mode);
     }
 

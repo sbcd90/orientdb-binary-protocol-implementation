@@ -8,6 +8,7 @@ import com.orientechnologies.binary.protocol.binary.serialization.CSV;
 import com.orientechnologies.binary.protocol.common.Constants;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class RecordLoad extends Operation {
@@ -86,6 +87,8 @@ public class RecordLoad extends Operation {
                 payload.put("oClass", recordData.getoClass());
             }
             payload.put("oData", recordData.getoData());
+
+            List<Record> prefetchedRecords = this._readPrefetchRecord();
 
             Record finalRecord = new Record();
             finalRecord.setRid((RecordId) payload.get("rid"));
