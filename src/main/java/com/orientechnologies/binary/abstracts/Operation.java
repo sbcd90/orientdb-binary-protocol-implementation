@@ -120,6 +120,13 @@ public abstract class Operation extends ConfigurableTrait {
         return wrapped.getShort();
     }
 
+    protected boolean _readBoolean() throws Exception {
+        byte[] read_ = this.socket.read(1);
+        inputBuffer = ArrayUtils.addAll(inputBuffer, read_);
+        ByteBuffer wrapped = ByteBuffer.wrap(read_);
+        return wrapped.get() != 0;
+    }
+
     protected char _readChar() throws Exception {
         byte[] read_ = this.socket.read(2);
         inputBuffer = ArrayUtils.addAll(inputBuffer, read_);

@@ -159,6 +159,10 @@ public class SocketTransport extends AbstractTransport {
 
             opObj = new RecordUpdate(this, record, rid);
         }
+        if (operation.equals("recordDelete")) {
+            RecordId rid = (RecordId) params.get("recordid");
+            opObj = new RecordDelete(this, rid);
+        }
 
         Operation op = this.operationFactory(opObj, params);
 

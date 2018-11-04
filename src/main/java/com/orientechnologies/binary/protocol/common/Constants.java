@@ -26,6 +26,8 @@ public class Constants {
 
     public static final int RECORD_UPDATE_OP = 32;
 
+    public static final int RECORD_DELETE_OP = 33;
+
     public static final String DATABASE_TYPE_DOCUMENT = "document";
 
     public static final String RECORD_TYPE_DOCUMENT = "d";

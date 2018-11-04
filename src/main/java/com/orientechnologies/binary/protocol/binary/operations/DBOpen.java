@@ -107,7 +107,10 @@ public class DBOpen extends Operation {
         clusterList.put("servers", this._readString());
         clusterList.put("release", this._readString());
 
-        this.transport.setClusterMap(clusterList);
+        this.transport.setClusterMap(new HashMap<>());
+        for (Map<String, Object> dataCluster: dataCusters) {
+            this.transport.getClusterMap().put(dataCluster.get("name").toString(), dataCluster.get("id"));
+        }
 
         return (T) sessionId;
     }

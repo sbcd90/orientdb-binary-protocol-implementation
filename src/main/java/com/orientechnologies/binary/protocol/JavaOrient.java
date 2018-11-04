@@ -3,6 +3,7 @@ package com.orientechnologies.binary.protocol;
 import com.orientechnologies.binary.protocol.binary.SocketTransport;
 import com.orientechnologies.binary.protocol.binary.data.Record;
 import com.orientechnologies.binary.protocol.binary.data.RecordId;
+import com.orientechnologies.binary.protocol.common.AbstractTransport;
 import com.orientechnologies.binary.protocol.common.Constants;
 import com.orientechnologies.binary.protocol.common.ITransport;
 
@@ -135,6 +136,14 @@ public class JavaOrient {
         return this.transport.execute(Arrays.asList("addCluster"), params);
     }
 
+    public Integer getCluster(String clusterName) {
+        if (this.transport instanceof AbstractTransport) {
+            return Integer.valueOf(((AbstractTransport) this.transport)
+                    .getClusterMap().get(clusterName).toString());
+        }
+        return -1;
+    }
+
     public <T> T getClusterCount(String[] clusterNames, boolean tombstones) {
         Map<String, Object> params = new HashMap<>();
         params.put("clusterNames", clusterNames);
@@ -166,6 +175,13 @@ public class JavaOrient {
         return this.transport.execute(Arrays.asList("recordUpdate"), params);
     }
 
+    public <T> T deleteRecord(RecordId rid) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("recordid", rid);
+
+        return this.transport.execute(Arrays.asList("recordDelete"), params);
+    }
+
     public static void main(String[] args) {
         JavaOrient javaOrient = new JavaOrient("127.0.0.1", "2424");
         javaOrient.username = "root";
@@ -174,8 +190,8 @@ public class JavaOrient {
         javaOrient.connect("root", "root");
         javaOrient.dbList("root", "root");
         javaOrient.dbOpen("GratefulDeadConcerts", "root", "root");
-        short clusterId = javaOrient.addCluster("testcluster65");
-        System.out.println(javaOrient.<Long>getClusterCount(new String[]{"testcluster65"}, true));
+        short clusterId = javaOrient.addCluster("testcluster69");
+        System.out.println(javaOrient.<Long>getClusterCount(new String[]{"testcluster69"}, true));
 
         Record record = new Record();
         record.setVersion(1);
@@ -195,6 +211,8 @@ public class JavaOrient {
         readRecord = javaOrient.readRecord((short) updatedRecord.getRid().getCluster(),
                 updatedRecord.getRid().getPosition(), null);
         System.out.println(readRecord.getoData().get("hello1"));
+
+        javaOrient.deleteRecord(updatedRecord.getRid());
 
         javaOrient.dbClose("root", "root");
         javaOrient.shutDown("root", "root");
