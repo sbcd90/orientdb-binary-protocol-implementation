@@ -14,4 +14,4 @@ mvn clean install
 Examples
 ========
 
-- [Examples](https://github.com/sbcd90/orientdb-binary-protocol-implementation/blob/master/src/main/java/com/orientechnologies/binary/protocol/JavaOrient.java#L170-#L199)
+- [Examples](src/test/java/com/orientechnologies/binary/JavaOrientTest.java)

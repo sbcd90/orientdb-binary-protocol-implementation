@@ -181,40 +181,4 @@ public class JavaOrient {
 
         return this.transport.execute(Arrays.asList("recordDelete"), params);
     }
-
-    public static void main(String[] args) {
-        JavaOrient javaOrient = new JavaOrient("127.0.0.1", "2424");
-        javaOrient.username = "root";
-        javaOrient.password = "root";
-
-        javaOrient.connect("root", "root");
-        javaOrient.dbList("root", "root");
-        javaOrient.dbOpen("GratefulDeadConcerts", "root", "root");
-        short clusterId = javaOrient.addCluster("testcluster69");
-        System.out.println(javaOrient.<Long>getClusterCount(new String[]{"testcluster69"}, true));
-
-        Record record = new Record();
-        record.setVersion(1);
-        record.setRid(new RecordId(clusterId, -1));
-        record.setoData(Collections.singletonMap("hello1", "world"));
-        record.setoClass("testclass5");
-        Record createdRecord = javaOrient.createRecord(record);
-
-        Record readRecord = javaOrient.readRecord((short) createdRecord.getRid().getCluster(),
-                createdRecord.getRid().getPosition(), null);
-        System.out.println(readRecord.getoData().get("hello1"));
-
-        record.setoData(Collections.singletonMap("hello1", "world1"));
-        Record updatedRecord = javaOrient.updateRecord(record,
-                new RecordId(createdRecord.getRid().getCluster(), createdRecord.getRid().getPosition()));
-
-        readRecord = javaOrient.readRecord((short) updatedRecord.getRid().getCluster(),
-                updatedRecord.getRid().getPosition(), null);
-        System.out.println(readRecord.getoData().get("hello1"));
-
-        javaOrient.deleteRecord(updatedRecord.getRid());
-
-        javaOrient.dbClose("root", "root");
-        javaOrient.shutDown("root", "root");
-    }
 }
