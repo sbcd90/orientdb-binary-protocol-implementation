@@ -181,4 +181,14 @@ public class JavaOrient {
 
         return this.transport.execute(Arrays.asList("recordDelete"), params);
     }
+
+    public <T> T readRecords(String command, String query, int limit, String fetchPlan) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("command", command);
+        params.put("query", query);
+        params.put("limit", limit);
+        params.put("fetchPlan", fetchPlan);
+
+        return this.transport.execute(Arrays.asList("commandLoad"), params);
+    }
 }

@@ -28,7 +28,19 @@ public class Constants {
 
     public static final int RECORD_DELETE_OP = 33;
 
+    public static final int COMMAND_OP = 41;
+
     public static final String DATABASE_TYPE_DOCUMENT = "document";
 
     public static final String RECORD_TYPE_DOCUMENT = "d";
+
+    public static final String QUERY_SYNC = "com.orientechnologies.orient.core.sql.query.OSQLSynchQuery";
+
+    public static final String QUERY_ASYNC = "com.orientechnologies.orient.core.sql.query.OSQLAsynchQuery";
+
+    public static final String QUERY_CMD = "com.orientechnologies.orient.core.sql.OCommandSQL";
+
+    public static final String QUERY_GREMLIN = "com.orientechnologies.orient.graph.gremlin.OCommandGremlin";
+
+    public static final String QUERY_SCRIPT = "com.orientechnologies.orient.core.command.script.OCommandScript";
 }

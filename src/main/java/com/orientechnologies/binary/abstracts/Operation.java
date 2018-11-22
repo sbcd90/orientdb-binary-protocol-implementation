@@ -7,6 +7,7 @@ import com.orientechnologies.binary.protocol.binary.data.RecordId;
 import com.orientechnologies.binary.protocol.binary.operations.Connect;
 import com.orientechnologies.binary.protocol.binary.serialization.CSV;
 import com.orientechnologies.binary.protocol.common.ConfigurableTrait;
+import com.orientechnologies.binary.protocol.common.Constants;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.net.SocketException;
@@ -274,5 +275,46 @@ public abstract class Operation extends ConfigurableTrait {
         finalRecord.setVersion(Integer.valueOf(oRecord.get("version").toString()));
         finalRecord.setRid((RecordId) oRecord.get("rid"));
         return finalRecord;
+    }
+
+    protected List<Record> _readSync() throws Exception {
+        char responseType = this._readChar();
+        List<Record> results = new ArrayList<>();
+
+        switch (responseType) {
+            case 'n':
+                this._readChar();
+                break;
+            case 'r':
+                results.add(this._readRecord());
+                this._readChar();
+                break;
+            case 'w':
+                results.add(this._readRecord());
+                this._readChar();
+                break;
+            case 'a':
+                Record record = new Record();
+                record.setoClass(this._readString());
+                this._readChar();
+                break;
+            case 'l':
+                int listLen = this._readInt();
+                for (int n = 0;n < listLen;n++) {
+                    results.add(this._readRecord());
+                }
+                List<Record> cachedRecords = this._readPrefetchRecord();
+                results.addAll(cachedRecords);
+                break;
+            default:
+                String msg = "";
+                byte[] m = this.transport.getSocket().read(1);
+                while (!new String(m).equals("")) {
+                    msg += new String(m);
+                    m = this.transport.getSocket().read(1);
+                }
+                break;
+        }
+        return results;
     }
 }

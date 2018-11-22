@@ -163,6 +163,14 @@ public class SocketTransport extends AbstractTransport {
             RecordId rid = (RecordId) params.get("recordid");
             opObj = new RecordDelete(this, rid);
         }
+        if (operation.equals("commandLoad")) {
+            String command = params.get("command").toString();
+            String query = params.get("query").toString();
+            int limit = Integer.valueOf(params.get("limit").toString());
+            String fetchPlan = params.get("fetchPlan").toString();
+
+            opObj = new Command(this, command, query, limit, fetchPlan);
+        }
 
         Operation op = this.operationFactory(opObj, params);
 
