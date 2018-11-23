@@ -270,15 +270,21 @@ public abstract class Operation extends ConfigurableTrait {
             oRecord.put("oData", data);
         }
         Record finalRecord = new Record();
-        finalRecord.setoClass(oRecord.get("oClass").toString());
-        finalRecord.setoData((Map<String, Object>) oRecord.get("oData"));
+        if (oRecord.get("oClass") != null) {
+            finalRecord.setoClass(oRecord.get("oClass").toString());
+        }
+        if (oRecord.get("oData") instanceof Record) {
+            finalRecord.setoData((Map<String, Object>) ((Record) oRecord.get("oData")).getoData());
+        } else {
+            finalRecord.setoData((Map<String, Object>) oRecord.get("oData"));
+        }
         finalRecord.setVersion(Integer.valueOf(oRecord.get("version").toString()));
         finalRecord.setRid((RecordId) oRecord.get("rid"));
         return finalRecord;
     }
 
     protected List<Record> _readSync() throws Exception {
-        char responseType = this._readChar();
+        char responseType = (char) this._readByte();
         List<Record> results = new ArrayList<>();
 
         switch (responseType) {
@@ -303,16 +309,14 @@ public abstract class Operation extends ConfigurableTrait {
                 for (int n = 0;n < listLen;n++) {
                     results.add(this._readRecord());
                 }
-                List<Record> cachedRecords = this._readPrefetchRecord();
-                results.addAll(cachedRecords);
                 break;
             default:
                 String msg = "";
                 byte[] m = this.transport.getSocket().read(1);
-                while (!new String(m).equals("")) {
+                /*while (!new String(m).equals("")) {
                     msg += new String(m);
                     m = this.transport.getSocket().read(1);
-                }
+                }*/
                 break;
         }
         return results;

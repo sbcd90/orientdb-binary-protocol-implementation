@@ -3,7 +3,9 @@ package com.orientechnologies.binary.protocol.binary.operations;
 import com.orientechnologies.binary.abstracts.Operation;
 import com.orientechnologies.binary.protocol.binary.SocketTransport;
 import com.orientechnologies.binary.protocol.binary.data.Record;
+import com.orientechnologies.binary.protocol.binary.operations.utils.DataWriter;
 import com.orientechnologies.binary.protocol.common.Constants;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.List;
 
@@ -46,19 +48,20 @@ public class Command extends Operation {
         } else {
             this.modByte = 'a';
         }
-        this._writeChar(this.modByte);
-        this._writeString(this.command);
+        this._writeByte((byte) this.modByte);
+        byte[] payload = DataWriter.packString(this.command);
 
         if (this.command.equals(Constants.QUERY_SCRIPT)) {
-            this._writeString("sql");
+            payload = ArrayUtils.addAll(payload, DataWriter.packString("sql"));
         }
-        this._writeString(query);
+        payload = ArrayUtils.addAll(payload, DataWriter.packString(query));
         if (this.command.equals(Constants.QUERY_SYNC) || this.command.equals(Constants.QUERY_ASYNC)
         || this.command.equals(Constants.QUERY_GREMLIN)) {
-            this._writeInt(this.limit);
-            this._writeString(this.fetchPlan);
+            payload = ArrayUtils.addAll(payload, DataWriter.packInt(this.limit));
+            payload = ArrayUtils.addAll(payload, DataWriter.packString(this.fetchPlan));
         }
-        this._writeInt(0);
+        payload = ArrayUtils.addAll(payload, DataWriter.packInt(0));
+        this._writeBytes(payload);
     }
 
     @Override

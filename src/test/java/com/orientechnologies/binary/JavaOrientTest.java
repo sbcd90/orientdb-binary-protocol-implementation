@@ -3,8 +3,10 @@ package com.orientechnologies.binary;
 import com.orientechnologies.binary.protocol.JavaOrient;
 import com.orientechnologies.binary.protocol.binary.data.Record;
 import com.orientechnologies.binary.protocol.binary.data.RecordId;
+import com.orientechnologies.binary.protocol.common.Constants;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class JavaOrientTest {
@@ -56,6 +58,10 @@ public class JavaOrientTest {
         return javaOrient.readRecord(recordId.getCluster(), (long) recordId.getPosition(), null);
     }
 
+    public List<Record> listRecords(String command, String query, int limit, String fetchPlan) {
+        return javaOrient.readRecords(command, query, limit, fetchPlan);
+    }
+
     public Record updateRecord(Record record, RecordId recordId) {
         return javaOrient.updateRecord(record, recordId);
     }
@@ -85,9 +91,11 @@ public class JavaOrientTest {
 
         javaOrientTest.dbOpen("GratefulDeadConcerts");
 
-        short cluster = javaOrientTest.createCluster("orient_test_cluster");
+        if (javaOrientTest.getCluster("orient_test_cluster").shortValue() == 0) {
+            javaOrientTest.createCluster("orient_test_cluster");
+        }
 
-        cluster = javaOrientTest.getCluster("orient_test_cluster").shortValue();
+        short cluster = javaOrientTest.getCluster("orient_test_cluster").shortValue();
 
         Record record = new Record();
         record.setVersion(1);
@@ -105,6 +113,12 @@ public class JavaOrientTest {
 
         readRecord = javaOrientTest.readRecord(updateRecord.getRid());
         System.out.println(readRecord.getoData().get("hello"));
+
+        String command = Constants.QUERY_SYNC;
+        String query = "SELECT * FROM CLUSTER:" + 0 + " WHERE @rid = " + readRecord.getRid().toString();
+        int limit = 10;
+        String fetchPlan = "*:0";
+        List<Record> records = javaOrientTest.listRecords(command, query, limit, fetchPlan);
 
         javaOrientTest.deleteRecord(readRecord.getRid());
 
